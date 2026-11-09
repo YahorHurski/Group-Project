@@ -56,6 +56,28 @@ Backend/
 | `Microsoft.EntityFrameworkCore.Design` | `10.0.14` | EF Core tooling for creating and running migrations |
 | `AutoMapper` | `16.2.0` | Object-to-object mapping between Entities and DTOs |
 | `Microsoft.AspNetCore.OpenApi` | `10.*` | OpenAPI specification generation |
+| `Microsoft.AspNetCore.Authentication.JwtBearer` | `10.*` | JWT bearer authentication |
+
+---
+
+## 🔐 Authentication & Authorization
+
+JWT bearer authentication with two roles: `User` (default for new accounts) and `Admin`. Passwords are stored only as hashes (ASP.NET Core `PasswordHasher`).
+
+| Method | Endpoint | Access | Description |
+|---|---|---|---|
+| `POST` | `/api/auth/register` | public | Create an account (`email`, `password` ≥ 8 chars). `201` + JWT, `409` if the email exists, `400` on invalid data |
+| `POST` | `/api/auth/login` | public | Log in. `200` + JWT, `401` on wrong credentials |
+| `GET` | `/api/auth/me` | any authenticated user | Current user |
+| `GET` | `/api/admin/users` | `Admin` only | List users (`401` without a token, `403` for role `User`) |
+
+Send the token as `Authorization: Bearer <token>`.
+
+**Configuration** (`Web/appsettings*.json`, overridable with environment variables such as `Jwt__Key`):
+
+* `Jwt:Key` — signing key, at least 32 bytes. Empty in `appsettings.json` (the API refuses to start without it); a development key is set in `appsettings.Development.json`. Always set a secret key outside development.
+* `SeedAdmin:Email` / `SeedAdmin:Password` — initial administrator created on startup if missing (development: `admin@shop.com` / `Admin123!`).
+* `Database:MigrateOnStartup` — apply EF Core migrations on startup (default `true`).
 
 ---
 

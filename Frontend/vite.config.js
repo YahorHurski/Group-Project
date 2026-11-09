@@ -8,4 +8,13 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  server: {
+    proxy: {
+      // Forward API calls to the ASP.NET Core backend during development.
+      '/api': {
+        target: process.env.VITE_API_PROXY_TARGET ?? 'http://localhost:5007',
+        changeOrigin: true,
+      },
+    },
+  },
 })

@@ -43,8 +43,7 @@ Frontend/
 │   ├── pages/                      # Page components
 │   ├── services/                   # API client and HTTP services
 │   ├── utils/                      # Helper utilities and formatters
-│   ├── App.css                     # Component styles
-│   ├── App.jsx                     # Root application component
+│   ├── App.jsx                     # Root component: login / admin panel switch
 │   ├── index.css                   # Global styles and Tailwind CSS
 │   └── main.jsx                    # Application DOM entry
 ├── index.html                      # HTML template
@@ -52,6 +51,19 @@ Frontend/
 ├── vite.config.js                  # Bundler configuration
 └── .oxlintrc.json                  # Linter configuration
 ```
+
+---
+
+## 🛠️ Admin Panel (basic)
+
+After signing in as an administrator, the app shows an admin panel with two tabs:
+
+* **Products** — list, create, edit and delete products (name, description, price, stock, category).
+* **Categories** — list, create, rename and delete categories.
+
+Non-admin users see an "access denied" message. The JWT is kept in `localStorage` and restored on reload (`src/context/AuthContext.jsx`); all HTTP calls go through `src/services/api.js`, which also turns API validation/conflict errors into readable messages.
+
+During development, Vite proxies `/api` to the backend (`http://localhost:5007` by default, override with the `VITE_API_PROXY_TARGET` environment variable), so no CORS configuration is needed. Run the backend first (`docker compose up -d db`, then `dotnet run` in `Backend/`) and sign in with the seeded development admin described in the backend README.
 
 ---
 

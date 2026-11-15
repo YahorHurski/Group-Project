@@ -146,6 +146,27 @@ dotnet ef migrations remove
 
 ---
 
+## 🛍️ Catalog API (products & categories)
+
+Reads are public; create/update/delete require the `Admin` role (`401` without a token, `403` for role `User`).
+
+| Method | Endpoint | Access | Description |
+|---|---|---|---|
+| `GET` | `/api/categories` | public | All categories (sorted by name) |
+| `GET` | `/api/categories/{id}` | public | One category, `404` if missing |
+| `POST` | `/api/categories` | `Admin` | Create (`name` ≤ 100). `409` on duplicate name |
+| `PUT` | `/api/categories/{id}` | `Admin` | Rename. `404` / `409` |
+| `DELETE` | `/api/categories/{id}` | `Admin` | `204`; `409` if the category still has products |
+| `GET` | `/api/products?search=&categoryId=` | public | Products; optional case-insensitive `search` (name/description) and `categoryId` filter |
+| `GET` | `/api/products/{id}` | public | One product, `404` if missing |
+| `POST` | `/api/products` | `Admin` | Create. `400` on invalid data or unknown `categoryId` |
+| `PUT` | `/api/products/{id}` | `Admin` | Update. `400` / `404` |
+| `DELETE` | `/api/products/{id}` | `Admin` | `204`; `409` if the product is part of existing orders |
+
+Product body: `name` (1–200), `description` (≤ 2000, optional), `price` (0 – 1 000 000 000), `stockQuantity` (≥ 0), `categoryId`. Validation errors return `400` with a per-field `errors` object; other failures return `ProblemDetails` (`title`, `detail`).
+
+---
+
 ## 📄 API Documentation
 
 When running in the `Development` environment, OpenAPI documentation is available:

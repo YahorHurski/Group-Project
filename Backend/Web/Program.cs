@@ -58,20 +58,24 @@ builder.Services.AddAutoMapper(cfg => { }, typeof(Program).Assembly);
 
 var app = builder.Build();
 
-// Apply migrations and seed the initial admin.
+// Apply migrations and seed the initial admin (and sample catalog in Development).
 if (app.Configuration.GetValue("Database:MigrateOnStartup", true))
 {
     using var scope = app.Services.CreateScope();
     await scope.ServiceProvider.GetRequiredService<AppDbContext>().Database.MigrateAsync();
     await AdminSeeder.SeedAsync(scope.ServiceProvider, app.Configuration);
+    if (app.Environment.IsDevelopment() || app.Configuration.GetValue("Database:SeedSampleData", false))
+        await CatalogSeeder.SeedAsync(scope.ServiceProvider);
 }
 
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
-
-app.UseHttpsRedirection();
+else
+{
+    app.UseHttpsRedirection();
+}
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

@@ -108,6 +108,8 @@ Group-Project/
 │
 ├── Backend/                        # Backend REST API
 │   ├── Backend.csproj              # Project configuration
+│   ├── Dockerfile                  # Backend container image
+│   ├── Properties/                 # Launch settings
 │   ├── DAL/                        # Data Access Layer
 │   ├── Model/                      # Domain Entities
 │   ├── Services/                   # Business Logic Layer
@@ -116,13 +118,14 @@ Group-Project/
 │   │   └── Common/                 # Shared utilities and constants
 │   └── Web/                        # API host and presentation layer
 │       ├── Controllers/            # API Controllers
-│       ├── Properties/             # Launch settings
 │       ├── appsettings.json        # Application configuration
 │       ├── appsettings.Development.json
 │       ├── Backend.http            # HTTP test requests
 │       └── Program.cs              # Application entry point
 │
 └── Frontend/                       # Frontend application
+    ├── Dockerfile                  # Frontend container image (Nginx)
+    ├── nginx.conf                  # Nginx SPA + /api reverse proxy config
     ├── index.html                  # HTML entry point
     ├── vite.config.js              # Bundler configuration
     ├── package.json                # Dependencies and scripts
@@ -161,17 +164,26 @@ cd Group-Project
 
 ---
 
-### Step 2: Start the Database via Docker Compose
-Run the following command in the project root:
+### Option A: Full Stack with Docker Compose (3 containers)
+Run the database, backend API, and frontend together in the project root:
 ```bash
-docker compose up -d
+docker compose up -d --build
 ```
-* **PostgreSQL:** Running on `localhost:5432` (Database: `shop_db`, User: `postgres`, Password: `postgres`)
-* **pgAdmin 4 Web GUI:** Accessible at `http://localhost:5050`
-  * **Email:** `admin@shop.com`
-  * **Password:** `admin`
+* **Frontend:** `http://localhost:5173`
+* **Backend API:** `http://localhost:5007` (OpenAPI in `Development`)
+* **PostgreSQL:** `localhost:5432` (Database: `shop_db`, User: `postgres`, Password: `postgres`)
+* *(Optional)* Start **pgAdmin 4** (`http://localhost:5050`, `admin@shop.com` / `admin`) with:
+  ```bash
+  docker compose --profile tools up -d
+  ```
 
 ---
+
+### Option B: Run Locally (Database in Docker)
+1. Start only PostgreSQL:
+   ```bash
+   docker compose up -d db
+   ```
 
 ### Step 3: Run the Backend API
 1. Navigate to the `Backend` directory:

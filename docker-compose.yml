@@ -17,9 +17,35 @@ services:
       timeout: 5s
       retries: 5
 
+  backend:
+    build:
+      context: ./Backend
+    container_name: shop_backend
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__DefaultConnection: Host=db;Port=5432;Database=shop_db;Username=postgres;Password=postgres
+    ports:
+      - "5007:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./Frontend
+    container_name: shop_frontend
+    restart: unless-stopped
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+
   pgadmin:
     image: dpage/pgadmin4
     container_name: shop_pgadmin
+    profiles: ["tools"]
     restart: unless-stopped
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@shop.com

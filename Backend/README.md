@@ -31,6 +31,8 @@ The backend follows a clean, layered architecture with separation of concerns:
 ```
 Backend/
 ├── Backend.csproj                  # Project configuration and package dependencies
+├── Dockerfile                      # Container build for the API
+├── Properties/                     # Launch settings (`launchSettings.json`)
 ├── DAL/                            # Data Access Layer
 ├── Model/                          # Domain entities
 ├── Services/                       # Business logic and services
@@ -39,7 +41,6 @@ Backend/
 │   └── Common/                     # Shared utilities and constants
 └── Web/                            # API host and presentation layer
     ├── Controllers/                # API Controllers
-    ├── Properties/                 # Launch settings
     ├── appsettings.json            # Application configuration and connection strings
     ├── appsettings.Development.json
     ├── Backend.http                # HTTP request tests
@@ -78,6 +79,7 @@ Send the token as `Authorization: Bearer <token>`.
 * `Jwt:Key` — signing key, at least 32 bytes. Empty in `appsettings.json` (the API refuses to start without it); a development key is set in `appsettings.Development.json`. Always set a secret key outside development.
 * `SeedAdmin:Email` / `SeedAdmin:Password` — initial administrator created on startup if missing (development: `admin@shop.com` / `Admin123!`).
 * `Database:MigrateOnStartup` — apply EF Core migrations on startup (default `true`).
+* `Database:SeedSampleData` — seed sample Polish categories and products when the catalog is empty (automatic in `Development`; opt-in in other environments).
 
 ---
 
@@ -125,7 +127,7 @@ The database connection string is configured in **`Web/appsettings.json`** and *
    dotnet run
    ```
 
-The application will launch and listen on the configured local ports (specified in `Web/Properties/launchSettings.json`).
+The application will launch and listen on the configured local ports (specified in `Properties/launchSettings.json`).
 
 ---
 

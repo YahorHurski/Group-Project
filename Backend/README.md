@@ -157,13 +157,25 @@ Reads are public; create/update/delete require the `Admin` role (`401` without a
 | `POST` | `/api/categories` | `Admin` | Create (`name` ≤ 100). `409` on duplicate name |
 | `PUT` | `/api/categories/{id}` | `Admin` | Rename. `404` / `409` |
 | `DELETE` | `/api/categories/{id}` | `Admin` | `204`; `409` if the category still has products |
-| `GET` | `/api/products?search=&categoryId=` | public | Products; optional case-insensitive `search` (name/description) and `categoryId` filter |
+| `GET` | `/api/products` | public | Products sorted by name. Optional filters, combined with AND: `search` (case-insensitive, name/description), `categoryId`, `minPrice` / `maxPrice` (inclusive), `inStock=true`. `400` for negative prices, `minPrice > maxPrice` or malformed values |
 | `GET` | `/api/products/{id}` | public | One product, `404` if missing |
 | `POST` | `/api/products` | `Admin` | Create. `400` on invalid data or unknown `categoryId` |
 | `PUT` | `/api/products/{id}` | `Admin` | Update. `400` / `404` |
 | `DELETE` | `/api/products/{id}` | `Admin` | `204`; `409` if the product is part of existing orders |
 
 Product body: `name` (1–200), `description` (≤ 2000, optional), `price` (0 – 1 000 000 000), `stockQuantity` (≥ 0), `categoryId`. Validation errors return `400` with a per-field `errors` object; other failures return `ProblemDetails` (`title`, `detail`).
+
+---
+
+## 🧪 Tests
+
+`dotnet test ../Backend.Tests` runs the xUnit suite (see the root README): HTTP-level tests of the `/api/products` filters work without a database, while the `ProductService` tests need PostgreSQL (`docker compose up -d db`) and are skipped when it is unreachable.
+
+---
+
+## 📚 Technical Documentation (Doxygen)
+
+`doxygen docs/Doxyfile` (run from the repository root) generates the API reference into `docs/doxygen/html`. Document public types with XML comments (`/// <summary>`, `<param>`, `<returns>`); a `<summary>` is required for Doxygen to pick up `<param>` tags.
 
 ---
 

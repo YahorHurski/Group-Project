@@ -99,7 +99,9 @@ The user interface is built with modern usability standards in mind:
 ```
 Group-Project/
 ├── docker-compose.yml              # Container orchestration
+├── Backend.Tests/                  # xUnit tests for the API
 ├── docs/                           # Project documentation
+│   ├── Doxyfile                    # Doxygen configuration (backend API docs)
 │   ├── project-card.pdf            # Project Charter
 │   └── diagrams/
 │       └── orm-diagram.png         # Database ER diagram
@@ -199,6 +201,30 @@ docker compose up -d
    npm run dev
    ```
 4. Open your browser and navigate to `http://localhost:5173`.
+
+---
+
+## 🧪 Testing
+
+| Suite | Command | What it covers |
+|---|---|---|
+| Backend (xUnit) | `dotnet test Backend.Tests` | `GET /api/products` query binding and validation (always runs, no database needed) and `ProductService` filtering against PostgreSQL |
+| Frontend (Vitest) | `cd Frontend && npm test` | Catalog page states (loading / error / empty), API filtering, URL-synced filters, API client |
+
+The `ProductService` tests need a real PostgreSQL server because search uses `ILIKE`. Start the database first (`docker compose up -d db`); each run creates and drops its own throw-away database. Use the `TEST_DB_CONNECTION` environment variable to point to another server. When no server is reachable these tests are reported as **skipped**, not failed.
+
+---
+
+## 📚 Technical Documentation (Doxygen)
+
+The backend API reference is generated with [Doxygen](https://www.doxygen.nl/) from the C# XML documentation comments (`/// <summary>`).
+
+```bash
+# from the repository root
+doxygen docs/Doxyfile
+```
+
+Open `docs/doxygen/html/index.html`. The output folder is git-ignored and warnings are written to `docs/doxygen/warnings.log`. Doxygen can only parse the C# backend; the React frontend is not included.
 
 ---
 

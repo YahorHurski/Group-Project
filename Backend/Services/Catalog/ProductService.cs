@@ -8,8 +8,13 @@ using Npgsql;
 
 namespace Backend.Services.Catalog;
 
+/// <summary>
+/// EF Core implementation of <see cref="IProductService"/>. Filtering is translated to SQL
+/// (case-insensitive search uses PostgreSQL <c>ILIKE</c>), so it only works with the Npgsql provider.
+/// </summary>
 public class ProductService(AppDbContext db, IMapper mapper) : IProductService
 {
+    /// <inheritdoc />
     public async Task<IReadOnlyList<ProductDto>> GetAllAsync(string? search = null, int? categoryId = null, decimal? minPrice = null, decimal? maxPrice = null, bool? inStock = null)
     {
         var query = db.Products.AsNoTracking().Include(p => p.Category).AsQueryable();

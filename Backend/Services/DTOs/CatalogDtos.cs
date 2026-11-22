@@ -10,6 +10,7 @@ public class CategoryRequest
 
 public record CategoryDto(int Id, string Name);
 
+/// <summary>Body of <c>POST</c>/<c>PUT /api/products</c>; validated by data annotations.</summary>
 public class ProductRequest
 {
     [Required, StringLength(200, MinimumLength = 1)]
@@ -28,6 +29,7 @@ public class ProductRequest
     public int CategoryId { get; set; }
 }
 
+/// <summary>Product as returned by the API, including the name of its category.</summary>
 public record ProductDto(
     int Id,
     string Name,

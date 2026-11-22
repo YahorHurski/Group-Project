@@ -9,6 +9,7 @@ This directory contains the project specification, academic requirements, and ar
 ```
 docs/
 ├── README.md                       # Documentation overview
+├── Doxyfile                        # Doxygen configuration (generates docs/doxygen/, git-ignored)
 ├── project-card.pdf                # Academic Project Charter
 └── diagrams/                       # Architectural and database diagrams
     └── orm-diagram.png             # Database ER diagram
@@ -20,3 +21,4 @@ docs/
 
 * **`project-card.pdf`** (*Karta Projektu*): The official academic project charter for Politechnika Częstochowska (Team `IO_2`). It details project objectives, member roles, Definition of Done (DoD), functional and non-functional requirements, schedule, and risk management plans.
 * **`diagrams/orm-diagram.png`**: The Entity-Relationship (ORM) diagram illustrating the database schema, entity attributes, primary/foreign keys, and relational cardinality between `User`, `Category`, `Product`, `Cart`, `CartItem`, `Order`, and `OrderItem`.
+* **`Doxyfile`**: Doxygen configuration for the backend API reference. Run `doxygen docs/Doxyfile` from the repository root and open `docs/doxygen/html/index.html`.

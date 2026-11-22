@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Backend.Web.Controllers;
 
+/// <summary>Public product catalog (read) and administrator-only product management (write).</summary>
 [ApiController]
 [Route("api/products")]
 public class ProductsController(IProductService products) : ControllerBase

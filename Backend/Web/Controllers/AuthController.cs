@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using AutoMapper;
 using Backend.DAL;
 using Backend.Services.Auth;
 using Backend.Services.DTOs;
@@ -10,7 +11,7 @@ namespace Backend.Web.Controllers;
 
 [ApiController]
 [Route("api/auth")]
-public class AuthController(IAuthService authService, AppDbContext db) : ControllerBase
+public class AuthController(IAuthService authService, AppDbContext db, IMapper mapper) : ControllerBase
 {
     [HttpPost("register")]
     [ProducesResponseType<AuthResponse>(StatusCodes.Status201Created)]
@@ -54,6 +55,6 @@ public class AuthController(IAuthService authService, AppDbContext db) : Control
         if (user is null)
             return Unauthorized();
 
-        return Ok(new UserDto(user.Id, user.Email, user.Role.ToString()));
+        return Ok(mapper.Map<UserDto>(user));
     }
 }

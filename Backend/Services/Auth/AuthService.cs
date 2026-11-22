@@ -1,3 +1,4 @@
+using AutoMapper;
 using Backend.DAL;
 using Backend.Model;
 using Backend.Services.DTOs;
@@ -10,7 +11,8 @@ namespace Backend.Services.Auth;
 public class AuthService(
     AppDbContext db,
     IPasswordHasher<User> passwordHasher,
-    IJwtTokenGenerator tokenGenerator) : IAuthService
+    IJwtTokenGenerator tokenGenerator,
+    IMapper mapper) : IAuthService
 {
     public async Task<AuthResponse?> RegisterAsync(RegisterRequest request)
     {
@@ -60,7 +62,7 @@ public class AuthService(
     private AuthResponse BuildResponse(User user)
     {
         var (token, expiresAt) = tokenGenerator.Generate(user);
-        return new AuthResponse(token, expiresAt, new UserDto(user.Id, user.Email, user.Role.ToString()));
+        return new AuthResponse(token, expiresAt, mapper.Map<UserDto>(user));
     }
 
     private static string Normalize(string email) => email.Trim().ToLowerInvariant();

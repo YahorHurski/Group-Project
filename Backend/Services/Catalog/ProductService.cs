@@ -8,9 +8,14 @@ using Npgsql;
 
 namespace Backend.Services.Catalog;
 
+/// <summary>
+/// EF Core implementation of <see cref="IProductService"/>. Filtering is translated to SQL
+/// (case-insensitive search uses PostgreSQL <c>ILIKE</c>), so it only works with the Npgsql provider.
+/// </summary>
 public class ProductService(AppDbContext db, IMapper mapper) : IProductService
 {
-    public async Task<IReadOnlyList<ProductDto>> GetAllAsync(string? search = null, int? categoryId = null)
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<ProductDto>> GetAllAsync(string? search = null, int? categoryId = null, decimal? minPrice = null, decimal? maxPrice = null, bool? inStock = null)
     {
         var query = db.Products.AsNoTracking().Include(p => p.Category).AsQueryable();
 
@@ -24,6 +29,15 @@ public class ProductService(AppDbContext db, IMapper mapper) : IProductService
                 EF.Functions.ILike(p.Name, pattern, "\\") ||
                 (p.Description != null && EF.Functions.ILike(p.Description, pattern, "\\")));
         }
+
+        if (minPrice is not null)
+            query = query.Where(p => p.Price >= minPrice);
+
+        if (maxPrice is not null)
+            query = query.Where(p => p.Price <= maxPrice);
+
+        if (inStock == true)
+            query = query.Where(p => p.StockQuantity > 0);
 
         var products = await query.OrderBy(p => p.Name).ThenBy(p => p.Id).ToListAsync();
         return mapper.Map<List<ProductDto>>(products);

@@ -115,6 +115,7 @@ In the `Frontend` directory, you can run:
 |---|---|
 | `npm run dev` | Starts the development server with Hot Module Replacement (HMR) |
 | `npm run build` | Compiles and optimizes assets for production into the `dist/` folder |
+| `npm test` | Runs the Vitest unit/component tests once (jsdom + Testing Library) |
 | `npm run preview` | Locally serves the production build for verification |
 | `npm run lint` | Runs Oxlint to analyze code quality and potential issues |
 

@@ -31,6 +31,8 @@ The backend follows a clean, layered architecture with separation of concerns:
 ```
 Backend/
 ├── Backend.csproj                  # Project configuration and package dependencies
+├── Dockerfile                      # Container build for the API
+├── Properties/                     # Launch settings (`launchSettings.json`)
 ├── DAL/                            # Data Access Layer
 ├── Model/                          # Domain entities
 ├── Services/                       # Business logic and services
@@ -39,7 +41,6 @@ Backend/
 │   └── Common/                     # Shared utilities and constants
 └── Web/                            # API host and presentation layer
     ├── Controllers/                # API Controllers
-    ├── Properties/                 # Launch settings
     ├── appsettings.json            # Application configuration and connection strings
     ├── appsettings.Development.json
     ├── Backend.http                # HTTP request tests
@@ -78,6 +79,7 @@ Send the token as `Authorization: Bearer <token>`.
 * `Jwt:Key` — signing key, at least 32 bytes. Empty in `appsettings.json` (the API refuses to start without it); a development key is set in `appsettings.Development.json`. Always set a secret key outside development.
 * `SeedAdmin:Email` / `SeedAdmin:Password` — initial administrator created on startup if missing (development: `admin@shop.com` / `Admin123!`).
 * `Database:MigrateOnStartup` — apply EF Core migrations on startup (default `true`).
+* `Database:SeedSampleData` — seed sample Polish categories and products when the catalog is empty (automatic in `Development`; opt-in in other environments).
 
 ---
 
@@ -125,7 +127,7 @@ The database connection string is configured in **`Web/appsettings.json`** and *
    dotnet run
    ```
 
-The application will launch and listen on the configured local ports (specified in `Web/Properties/launchSettings.json`).
+The application will launch and listen on the configured local ports (specified in `Properties/launchSettings.json`).
 
 ---
 
@@ -157,13 +159,25 @@ Reads are public; create/update/delete require the `Admin` role (`401` without a
 | `POST` | `/api/categories` | `Admin` | Create (`name` ≤ 100). `409` on duplicate name |
 | `PUT` | `/api/categories/{id}` | `Admin` | Rename. `404` / `409` |
 | `DELETE` | `/api/categories/{id}` | `Admin` | `204`; `409` if the category still has products |
-| `GET` | `/api/products?search=&categoryId=` | public | Products; optional case-insensitive `search` (name/description) and `categoryId` filter |
+| `GET` | `/api/products` | public | Products sorted by name. Optional filters, combined with AND: `search` (case-insensitive, name/description), `categoryId`, `minPrice` / `maxPrice` (inclusive), `inStock=true`. `400` for negative prices, `minPrice > maxPrice` or malformed values |
 | `GET` | `/api/products/{id}` | public | One product, `404` if missing |
 | `POST` | `/api/products` | `Admin` | Create. `400` on invalid data or unknown `categoryId` |
 | `PUT` | `/api/products/{id}` | `Admin` | Update. `400` / `404` |
 | `DELETE` | `/api/products/{id}` | `Admin` | `204`; `409` if the product is part of existing orders |
 
 Product body: `name` (1–200), `description` (≤ 2000, optional), `price` (0 – 1 000 000 000), `stockQuantity` (≥ 0), `categoryId`. Validation errors return `400` with a per-field `errors` object; other failures return `ProblemDetails` (`title`, `detail`).
+
+---
+
+## 🧪 Tests
+
+`dotnet test ../Backend.Tests` runs the xUnit suite (see the root README): HTTP-level tests of the `/api/products` filters work without a database, while the `ProductService` tests need PostgreSQL (`docker compose up -d db`) and are skipped when it is unreachable.
+
+---
+
+## 📚 Technical Documentation (Doxygen)
+
+`doxygen docs/Doxyfile` (run from the repository root) generates the API reference into `docs/doxygen/html`. Document public types with XML comments (`/// <summary>`, `<param>`, `<returns>`); a `<summary>` is required for Doxygen to pick up `<param>` tags.
 
 ---
 

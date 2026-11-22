@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 import ProductCard from '../components/ProductCard.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { categoriesApi, productsApi } from '../services/api.js'
@@ -7,29 +7,46 @@ import { categoriesApi, productsApi } from '../services/api.js'
 export default function CatalogPage() {
     const { user, isAdmin, logout } = useAuth()
 
+    // Filters live in the URL so the page is linkable and survives reloads / back navigation.
+    const [searchParams, setSearchParams] = useSearchParams()
+    const searchInput = searchParams.get('search') ?? ''
+    const selectedCategory = searchParams.get('categoryId') ?? ''
+    const minPrice = searchParams.get('minPrice') ?? ''
+    const maxPrice = searchParams.get('maxPrice') ?? ''
+    const onlyInStock = searchParams.get('inStock') === 'true'
+
     const [products, setProducts] = useState([])
     const [categories, setCategories] = useState([])
-
-    // Filter states
-    const [searchInput, setSearchInput] = useState('')
-    const [debouncedSearch, setDebouncedSearch] = useState('')
-    const [selectedCategory, setSelectedCategory] = useState('')
-    const [minPrice, setMinPrice] = useState('')
-    const [maxPrice, setMaxPrice] = useState('')
-    const [onlyInStock, setOnlyInStock] = useState(false)
+    const [debouncedSearch, setDebouncedSearch] = useState(searchInput)
+    const [debouncedPrices, setDebouncedPrices] = useState({ minPrice, maxPrice })
 
     // Loading & error states
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
     const [categoriesError, setCategoriesError] = useState('')
 
-    // Debounce search input
+    const requestId = useRef(0)
+
+    function updateFilter(key, value) {
+        setSearchParams(
+            (prev) => {
+                const next = new URLSearchParams(prev)
+                if (value === '' || value === false || value == null) next.delete(key)
+                else next.set(key, String(value))
+                return next
+            },
+            { replace: true },
+        )
+    }
+
+    // Debounce free-text and price inputs so every keystroke does not hit the API
     useEffect(() => {
         const timer = setTimeout(() => {
             setDebouncedSearch(searchInput)
+            setDebouncedPrices({ minPrice, maxPrice })
         }, 300)
         return () => clearTimeout(timer)
-    }, [searchInput])
+    }, [searchInput, minPrice, maxPrice])
 
     // Load categories once
     useEffect(() => {
@@ -47,51 +64,55 @@ export default function CatalogPage() {
         }
     }, [])
 
-    // Load products
+    const priceError =
+        debouncedPrices.minPrice !== '' &&
+        debouncedPrices.maxPrice !== '' &&
+        Number(debouncedPrices.minPrice) > Number(debouncedPrices.maxPrice)
+            ? 'Min price cannot be greater than max price.'
+            : ''
+
+    // Load products from the API whenever the (debounced) filters change
     const fetchProducts = useCallback(async () => {
+        const id = ++requestId.current
         setLoading(true)
         setError('')
         try {
-            const data = await productsApi.list()
+            const data = await productsApi.list({
+                search: debouncedSearch,
+                categoryId: selectedCategory,
+                minPrice: debouncedPrices.minPrice,
+                maxPrice: debouncedPrices.maxPrice,
+                inStock: onlyInStock,
+            })
+            // Ignore stale responses from superseded requests
+            if (id !== requestId.current) return
             setProducts(data || [])
         } catch (err) {
+            if (id !== requestId.current) return
             setError(err.message || 'Failed to load products.')
         } finally {
-            setLoading(false)
+            if (id === requestId.current) setLoading(false)
         }
-    }, [])
+    }, [debouncedSearch, selectedCategory, debouncedPrices, onlyInStock])
 
     useEffect(() => {
+        if (priceError) {
+            requestId.current++ // drop any in-flight response
+            return
+        }
         fetchProducts()
-    }, [fetchProducts])
+    }, [fetchProducts, priceError])
 
-    // Filter by search, category, price, and stock
-    const filteredProducts = useMemo(() => {
-        const query = debouncedSearch.trim().toLowerCase()
-
-        return products.filter((p) => {
-            if (selectedCategory && String(p.categoryId) !== String(selectedCategory)) {
-                return false
-            }
-            if (query) {
-                const nameMatch = p.name?.toLowerCase().includes(query)
-                const descMatch = p.description?.toLowerCase().includes(query)
-                if (!nameMatch && !descMatch) return false
-            }
-            if (onlyInStock && p.stockQuantity <= 0) return false
-            if (minPrice !== '' && Number(p.price) < Number(minPrice)) return false
-            if (maxPrice !== '' && Number(p.price) > Number(maxPrice)) return false
-            return true
-        })
-    }, [products, debouncedSearch, selectedCategory, onlyInStock, minPrice, maxPrice])
+    const setSearchInput = (v) => updateFilter('search', v)
+    const setSelectedCategory = (v) => updateFilter('categoryId', v)
+    const setMinPrice = (v) => updateFilter('minPrice', v)
+    const setMaxPrice = (v) => updateFilter('maxPrice', v)
+    const setOnlyInStock = (v) => updateFilter('inStock', v)
 
     function handleResetFilters() {
-        setSearchInput('')
+        setSearchParams({}, { replace: true })
         setDebouncedSearch('')
-        setSelectedCategory('')
-        setMinPrice('')
-        setMaxPrice('')
-        setOnlyInStock(false)
+        setDebouncedPrices({ minPrice: '', maxPrice: '' })
     }
 
     const hasActiveFilters =
@@ -240,6 +261,12 @@ export default function CatalogPage() {
                     </div>
                 </section>
 
+                {priceError && (
+                    <p role="alert" className="text-sm text-amber-700">
+                        {priceError}
+                    </p>
+                )}
+
                 {/* Error State */}
                 {error && (
                     <div
@@ -261,7 +288,7 @@ export default function CatalogPage() {
                 )}
 
                 {/* Loading State (Skeleton grid) */}
-                {loading && !error && (
+                {loading && !error && !priceError && (
                     <div
                         aria-label="Loading products"
                         className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
@@ -288,7 +315,7 @@ export default function CatalogPage() {
                 )}
 
                 {/* Empty State */}
-                {!loading && !error && filteredProducts.length === 0 && (
+                {!loading && !error && !priceError && products.length === 0 && (
                     <div className="rounded-xl border border-slate-200 bg-white p-10 text-center space-y-3">
                         <p className="text-lg font-semibold text-slate-800">No products found</p>
                         <p className="text-sm text-slate-500">
@@ -307,14 +334,14 @@ export default function CatalogPage() {
                 )}
 
                 {/* Products Grid */}
-                {!loading && !error && filteredProducts.length > 0 && (
+                {!loading && !error && !priceError && products.length > 0 && (
                     <>
                         <p className="text-xs text-slate-500">
-                            Showing {filteredProducts.length} product
-                            {filteredProducts.length === 1 ? '' : 's'}
+                            Showing {products.length} product
+                            {products.length === 1 ? '' : 's'}
                         </p>
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                            {filteredProducts.map((product) => (
+                            {products.map((product) => (
                                 <ProductCard key={product.id} product={product} />
                             ))}
                         </div>

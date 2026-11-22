@@ -1,0 +1,86 @@
+# Doxygen configuration for the Online Store Management project (backend API).
+#
+# Run from the REPOSITORY ROOT (all paths below are relative to it):
+#
+#     doxygen docs/Doxyfile
+#
+# The HTML documentation is generated into docs/doxygen/html (open index.html).
+# Only options that differ from Doxygen's defaults are listed here;
+# see `doxygen -g` for the full reference.
+
+#---------------------------------------------------------------------------
+# Project
+#---------------------------------------------------------------------------
+PROJECT_NAME           = "Online Store Management"
+PROJECT_BRIEF          = "Backend: ASP.NET Core REST API, EF Core, PostgreSQL (Projekt zespolowy, IO_2)"
+OUTPUT_DIRECTORY       = docs/doxygen
+CREATE_SUBDIRS         = NO
+OUTPUT_LANGUAGE        = English
+FULL_PATH_NAMES        = YES
+STRIP_FROM_PATH        = Backend
+
+#---------------------------------------------------------------------------
+# Source parsing (C# backend)
+#---------------------------------------------------------------------------
+# Doxygen cannot extract anything from ES modules / JSX (the generated pages are empty),
+# so only the C# backend is documented here.
+INPUT                  = README.md Backend
+INPUT_ENCODING         = UTF-8
+RECURSIVE              = YES
+FILE_PATTERNS          = *.cs
+# Doxygen recommends the Java output mode for C# (`.` instead of `::` as scope separator).
+OPTIMIZE_OUTPUT_JAVA   = YES
+EXCLUDE_PATTERNS       = */bin/* \
+                         */obj/* \
+                         */Migrations/*
+USE_MDFILE_AS_MAINPAGE = README.md
+
+#---------------------------------------------------------------------------
+# What to document
+#---------------------------------------------------------------------------
+# Most classes only have short XML summaries; EXTRACT_ALL keeps undocumented members in the output.
+EXTRACT_ALL            = YES
+EXTRACT_PRIVATE        = YES
+EXTRACT_STATIC         = YES
+EXTRACT_LOCAL_CLASSES  = YES
+EXTRACT_ANON_NSPACES   = YES
+# `/// <summary>` and `/** ... */` first sentences become brief descriptions.
+JAVADOC_AUTOBRIEF      = YES
+QT_AUTOBRIEF           = YES
+MARKDOWN_SUPPORT       = YES
+BUILTIN_STL_SUPPORT    = NO
+SORT_MEMBER_DOCS       = YES
+SORT_BY_SCOPE_NAME     = YES
+HIDE_UNDOC_RELATIONS   = NO
+
+#---------------------------------------------------------------------------
+# Diagnostics
+#---------------------------------------------------------------------------
+QUIET                  = YES
+WARNINGS               = YES
+WARN_IF_UNDOCUMENTED   = NO
+WARN_IF_DOC_ERROR      = YES
+WARN_NO_PARAMDOC       = NO
+WARN_AS_ERROR          = NO
+WARN_LOGFILE           = docs/doxygen/warnings.log
+
+#---------------------------------------------------------------------------
+# Output
+#---------------------------------------------------------------------------
+GENERATE_HTML          = YES
+HTML_OUTPUT            = html
+HTML_DYNAMIC_SECTIONS  = YES
+GENERATE_TREEVIEW      = YES
+SOURCE_BROWSER         = YES
+INLINE_SOURCES         = NO
+REFERENCED_BY_RELATION = YES
+REFERENCES_RELATION    = YES
+GENERATE_LATEX         = NO
+GENERATE_XML           = NO
+GENERATE_RTF           = NO
+GENERATE_MAN           = NO
+
+#---------------------------------------------------------------------------
+# Diagrams (set HAVE_DOT = YES when Graphviz is installed to get class/call graphs)
+#---------------------------------------------------------------------------
+HAVE_DOT               = NO

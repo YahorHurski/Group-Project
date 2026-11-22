@@ -4,6 +4,7 @@ using Backend.Services.DTOs;
 
 namespace Backend.Services.Mapping;
 
+/// <summary>AutoMapper mappings for the catalog: <see cref="Category"/> and <see cref="Product"/> entities and their DTOs.</summary>
 public class CatalogProfile : Profile
 {
     public CatalogProfile()

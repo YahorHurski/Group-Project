@@ -80,10 +80,13 @@ export const categoriesApi = {
 }
 
 export const productsApi = {
-    list: ({ search = '', categoryId = '' } = {}) => {
+    list: ({ search = '', categoryId = '', minPrice = '', maxPrice = '', inStock = false } = {}) => {
         const params = new URLSearchParams()
         if (search.trim()) params.set('search', search.trim())
         if (categoryId) params.set('categoryId', categoryId)
+        if (minPrice !== '') params.set('minPrice', minPrice)
+        if (maxPrice !== '') params.set('maxPrice', maxPrice)
+        if (inStock) params.set('inStock', 'true')
         const query = params.toString()
         return request(query ? `/products?${query}` : '/products')
     },

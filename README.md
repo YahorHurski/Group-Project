@@ -70,6 +70,22 @@ The user interface is built with modern usability standards in mind:
 
 ---
 
+## 🖼️ Screenshots
+
+### Product Catalog
+![Product Catalog](docs/images/image1.png)
+
+### Search & API Filtering
+![Catalog Filtering](docs/images/image2.png)
+
+### Error Handling & Retry State
+![Error State](docs/images/image3.png)
+
+### Admin Panel
+![Admin Panel](docs/images/image.png)
+
+---
+
 ## 🔒 Security & Data Integrity
 
 * **Password Security:** Passwords are never stored in plain text; secure password hashing algorithms (e.g., PBKDF2 / BCrypt / Argon2) are enforced.
@@ -99,13 +115,18 @@ The user interface is built with modern usability standards in mind:
 ```
 Group-Project/
 ├── docker-compose.yml              # Container orchestration
+├── Backend.Tests/                  # xUnit tests for the API
 ├── docs/                           # Project documentation
+│   ├── Doxyfile                    # Doxygen configuration (backend API docs)
 │   ├── project-card.pdf            # Project Charter
-│   └── diagrams/
-│       └── orm-diagram.png         # Database ER diagram
+│   ├── diagrams/
+│   │   └── orm-diagram.png         # Database ER diagram
+│   └── images/                     # UI screenshots for README
 │
 ├── Backend/                        # Backend REST API
 │   ├── Backend.csproj              # Project configuration
+│   ├── Dockerfile                  # Backend container image
+│   ├── Properties/                 # Launch settings
 │   ├── DAL/                        # Data Access Layer
 │   ├── Model/                      # Domain Entities
 │   ├── Services/                   # Business Logic Layer
@@ -114,13 +135,14 @@ Group-Project/
 │   │   └── Common/                 # Shared utilities and constants
 │   └── Web/                        # API host and presentation layer
 │       ├── Controllers/            # API Controllers
-│       ├── Properties/             # Launch settings
 │       ├── appsettings.json        # Application configuration
 │       ├── appsettings.Development.json
 │       ├── Backend.http            # HTTP test requests
 │       └── Program.cs              # Application entry point
 │
 └── Frontend/                       # Frontend application
+    ├── Dockerfile                  # Frontend container image (Nginx)
+    ├── nginx.conf                  # Nginx SPA + /api reverse proxy config
     ├── index.html                  # HTML entry point
     ├── vite.config.js              # Bundler configuration
     ├── package.json                # Dependencies and scripts
@@ -159,17 +181,26 @@ cd Group-Project
 
 ---
 
-### Step 2: Start the Database via Docker Compose
-Run the following command in the project root:
+### Option A: Full Stack with Docker Compose (3 containers)
+Run the database, backend API, and frontend together in the project root:
 ```bash
-docker compose up -d
+docker compose up -d --build
 ```
-* **PostgreSQL:** Running on `localhost:5432` (Database: `shop_db`, User: `postgres`, Password: `postgres`)
-* **pgAdmin 4 Web GUI:** Accessible at `http://localhost:5050`
-  * **Email:** `admin@shop.com`
-  * **Password:** `admin`
+* **Frontend:** `http://localhost:5173`
+* **Backend API:** `http://localhost:5007` (OpenAPI in `Development`)
+* **PostgreSQL:** `localhost:5432` (Database: `shop_db`, User: `postgres`, Password: `postgres`)
+* *(Optional)* Start **pgAdmin 4** (`http://localhost:5050`, `admin@shop.com` / `admin`) with:
+  ```bash
+  docker compose --profile tools up -d
+  ```
 
 ---
+
+### Option B: Run Locally (Database in Docker)
+1. Start only PostgreSQL:
+   ```bash
+   docker compose up -d db
+   ```
 
 ### Step 3: Run the Backend API
 1. Navigate to the `Backend` directory:
@@ -199,6 +230,30 @@ docker compose up -d
    npm run dev
    ```
 4. Open your browser and navigate to `http://localhost:5173`.
+
+---
+
+## 🧪 Testing
+
+| Suite | Command | What it covers |
+|---|---|---|
+| Backend (xUnit) | `dotnet test Backend.Tests` | `GET /api/products` query binding and validation (always runs, no database needed) and `ProductService` filtering against PostgreSQL |
+| Frontend (Vitest) | `cd Frontend && npm test` | Catalog page states (loading / error / empty), API filtering, URL-synced filters, API client |
+
+The `ProductService` tests need a real PostgreSQL server because search uses `ILIKE`. Start the database first (`docker compose up -d db`); each run creates and drops its own throw-away database. Use the `TEST_DB_CONNECTION` environment variable to point to another server. When no server is reachable these tests are reported as **skipped**, not failed.
+
+---
+
+## 📚 Technical Documentation (Doxygen)
+
+The backend API reference is generated with [Doxygen](https://www.doxygen.nl/) from the C# XML documentation comments (`/// <summary>`).
+
+```bash
+# from the repository root
+doxygen docs/Doxyfile
+```
+
+Open `docs/doxygen/html/index.html`. The output folder is git-ignored and warnings are written to `docs/doxygen/warnings.log`. Doxygen can only parse the C# backend; the React frontend is not included.
 
 ---
 

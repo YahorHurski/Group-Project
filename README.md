@@ -70,6 +70,22 @@ The user interface is built with modern usability standards in mind:
 
 ---
 
+## 🖼️ Screenshots
+
+### Product Catalog
+![Product Catalog](docs/images/image1.png)
+
+### Search & API Filtering
+![Catalog Filtering](docs/images/image2.png)
+
+### Error Handling & Retry State
+![Error State](docs/images/image3.png)
+
+### Admin Panel
+![Admin Panel](docs/images/image.png)
+
+---
+
 ## 🔒 Security & Data Integrity
 
 * **Password Security:** Passwords are never stored in plain text; secure password hashing algorithms (e.g., PBKDF2 / BCrypt / Argon2) are enforced.
@@ -103,8 +119,9 @@ Group-Project/
 ├── docs/                           # Project documentation
 │   ├── Doxyfile                    # Doxygen configuration (backend API docs)
 │   ├── project-card.pdf            # Project Charter
-│   └── diagrams/
-│       └── orm-diagram.png         # Database ER diagram
+│   ├── diagrams/
+│   │   └── orm-diagram.png         # Database ER diagram
+│   └── images/                     # UI screenshots for README
 │
 ├── Backend/                        # Backend REST API
 │   ├── Backend.csproj              # Project configuration

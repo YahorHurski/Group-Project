@@ -13,7 +13,11 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration
     .AddJsonFile("Web/appsettings.json", optional: true, reloadOnChange: true)
-    .AddJsonFile($"Web/appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true);
+    .AddJsonFile($"Web/appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true)
+    .AddEnvironmentVariables();
+
+if (args.Length > 0)
+    builder.Configuration.AddCommandLine(args);
 
 // Database
 builder.Services.AddDbContext<AppDbContext>(options =>
